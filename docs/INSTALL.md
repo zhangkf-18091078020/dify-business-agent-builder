@@ -1,5 +1,8 @@
 # 安装：拉下来就能让 Cursor 读到本 Skill
 
+> 目录分层、必备/可选、出了问题改哪 → 见同目录 **[使用说明.md](./使用说明.md)**。  
+> 本文只写：**怎么挂到业务仓 / 其它 AI**。
+
 Cursor 加载：
 
 ```text
@@ -8,7 +11,7 @@ Cursor 加载：
 
 不要用手拷规则正文；用 **Git 子模块**挂本仓。
 
-本仓库分层：根=`SKILL.md`；`rules/`/`templates/`/`catalog/`/`examples/` 给 AI；`docs/` 给人。
+仓库分层摘要：`SKILL.md`+`rules/`+`templates/`+`catalog/` 给 AI；`examples/` 参考；`docs/`+`README` 给人（详见使用说明）。
 
 ---
 
