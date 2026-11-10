@@ -2,10 +2,12 @@
 name: dify-business-agent-builder
 description: >-
   Builds Yunlan/Dify Agents for both business apps (e.g. 对象采集) and public
-  platform capabilities (e.g. 监控/告警/调度). Same flow: explore env UI, confirm
-  capabilities, then Workflow→Tool + Skill + new Agents. Public builds must be
-  visible under Agents for other teams and registered in 公共能力目录.
-  Never old studio AGENT; never empty-shell tools. Pack rules: 01～04.
+  platform capabilities (e.g. 监控/告警/调度). If Dify already has a matching
+  module (e.g. Chatflow), derive the capability pack from that module—do not
+  re-scrape APIs via browser. Else explore env UI, confirm, then
+  Workflow→Tool + Skill + new Agents. Public builds must be visible under
+  Agents and registered in 公共能力目录. Never old studio AGENT; never empty-shell
+  tools. Pack rules: 01～04.
 ---
 
 # Dify 业务 / 公共 Agent 搭建执行器
@@ -106,16 +108,19 @@ description: >-
 
 不确定 → **停问用户**：这是业务入口还是公共平台能力？
 
-## 主流程（两类共用「环境优先」）
+## 主流程（两类共用；无包时「Dify 模块优先，其次环境」）
 
 ```text
-用户：搭「某某」Agent
+用户：搭「某某」Agent（含先落盘能力包）
   → 判定业务 or 公共
   → 已有对应能力包？
         有 → 校验待确认 → 按矩阵 + rules/01～04 造
-        无 → 上【该环境】看页面有哪些能力 → 汇总表给人确认
-              → 落盘业务包或公共包 → 再按 rules/01～04 造
-           → 环境摸不到 → 才用对应 templates 回退（须注明）
+        无 → 查共用 Dify 是否已有对应模块（如原 Chatflow / 对话流 / 同名应用）
+              有模块 → 【强制】从该模块反推能力与接口 → 落盘 〈名〉-业务/公共能力包
+                     → 禁止再靠浏览器访问业务页抓接口
+                     → 汇总给人确认 → 再按 rules/01～04 造
+              无模块 → 上【该环境】看页面能力 → 汇总确认 → 落盘 → 再造
+                     → 环境摸不到 → 才用 templates 回退（须注明）
   → 收尾：
         业务 → 按包勾选绑定「已上线」公共能力；Agent 打业务标签
         公共 → 必须新版 Agents + 标签「公共」「〈名〉」；回填 catalog/公共能力目录（工具/Skill/Agent URL=已上线）
@@ -139,17 +144,24 @@ description: >-
 2. 对照仓库 `catalog/公共能力目录.md` 是否「已上线」；  
 3. 命中 → 绑定，不重建；未命中 → 停问「公共监控未上线或未打标签」。
 
-### 无能力包：环境优先（强制）
+### 无能力包：发现顺序（强制）
 
-1. 确认菜单/环境。  
-2. 上环境汇总按钮/Tab/列表等为候选表（有列表则默认带列表候选）。  
-3. **禁止**未看环境就按模板编「创建+启停+统计」。  
-4. 人确认前禁止建 Workflow / Tool / Skill / Agent。  
-5. 仅环境不可用时模板回退。
+| 优先级 | 来源 | 做法 |
+|--------|------|------|
+| **1** | Dify 已有对应模块（如原 **Chatflow**） | 打开/导出该模块：节点、HTTP/工具调用、入参出参、分支 → 写成能力矩阵 + 接口表 → 落盘 `dify-agent/〈名〉-业务能力包.md` 或 `〈名〉-公共能力包.md`。起草方式注明「Dify 模块反推」。**禁止**再浏览器探业务页抓接口。 |
+| **2** | 无对应模块 | 确认菜单/环境 → 上环境汇总按钮/Tab/列表为候选（有列表则默认带列表）。 |
+| **3** | 环境也摸不到 | 才用 `templates/` 回退，须注明原因。 |
 
-### 确认后逐项探查与造物
+共通：
 
-找入口 → 抓同款接口 → 按 `rules/01`→`02`→`03`→`04`；禁止空壳；列表≠单状态。
+1. **禁止**无证据就按模板编「创建+启停+统计」。  
+2. 人确认矩阵前禁止建新版 Agent 侧 Workflow / Tool / Skill / Agent（读已有 Chatflow 以落盘除外）。  
+3. 从 Chatflow 落盘时：接口路径/字段以模块内配置为准；看不清 → 第 9 节待确认，禁止猜测。
+
+### 确认后逐项造物
+
+有包且已确认 → 按 `rules/01`→`02`→`03`→`04`；禁止空壳；列表≠单状态。  
+来源为环境探查时：找入口 → 抓同款接口再造；来源为 Chatflow 时：按包内已反推接口造，勿再浏览器补抓（除非包内明确待确认且人授权）。
 
 ### 收尾
 
