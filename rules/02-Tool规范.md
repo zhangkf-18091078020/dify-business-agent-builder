@@ -19,6 +19,13 @@
 - 可选参数在 description 写明默认（如列表 `limit` 默认 10）。  
 - 危险操作参数（如 destroy）须在业务 Skill 中约定确认，不单靠工具描述。
 
+### 2.1 鉴权参数（硬约束）
+
+- `token` / `token_id` / `tokenID`：**禁止** `form=llm`（勿让模型填或编造）。  
+- 鉴权放 Workflow 内默认 / 环境变量 / 凭据；工具侧对空值及字面量 `None`/`null`/`undefined`/`nil` **一律回落**内置默认，禁止把假 token 打到业务接口。  
+- 工具 description、Skill、Agent 短提示词：**禁止**要求或示例「传入 token」。  
+- 仅调试需要时可用 `form=form`（人填），仍不得对 LLM 暴露。
+
 ## 3. 发布与绑定
 
 1. Workflow 发布版本。  

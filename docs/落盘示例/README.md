@@ -22,10 +22,12 @@
 ├── .cursor/
 │   └── skills/
 │       └── dify-business-agent-builder/   ← git submodule（共享 L1）
-└── dify-agent/                            ← 本业务自己的规则（L3）
+└── dify-agent/                            ← 本业务自己的规则（L3）；**仅此二文件**
     ├── README.md
     └── 对象采集-业务能力包.md
 ```
+
+> **白名单（硬）**：`dify-agent/` 禁止再放 Skill 正文、Agent 短提示词、执行报告、`build/` 等；那些只进 Dify / 对话交付。见 `rules/04-Agent规范.md` §5。
 
 对照本 Skill 仓里的样子：
 
@@ -41,7 +43,7 @@ docs/落盘示例/业务项目-对象采集/
 ```text
 〈监控公共仓根〉/
 ├── .cursor/skills/dify-business-agent-builder/   ← 同一 submodule
-└── dify-agent/
+└── dify-agent/                            ← **仅此二文件**
     ├── README.md
     └── 监控-公共能力包.md          ← 从 templates/公共能力包模板.md 起草
 ```
