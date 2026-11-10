@@ -3,6 +3,7 @@
 云澜 Dify **业务 / 公共 Agent** 搭建 Skill（跨项目共享）。
 
 **完整说明（目录分层、出了问题改哪、人看 vs AI 看）→ [docs/使用说明.md](./docs/使用说明.md)**  
+**业务/公共项目里自己的规则怎么放 → [docs/落盘示例/](./docs/落盘示例/README.md)**  
 **安装挂载 → [docs/INSTALL.md](./docs/INSTALL.md)**  
 **AI 入口 → [SKILL.md](./SKILL.md)**
 
