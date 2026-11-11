@@ -16,6 +16,7 @@
 ├── SKILL.md       # 【AI】总入口（必须在根）
 ├── rules/         # 【AI】生成契约 + 01～04
 ├── templates/     # 【AI】能力包空模板
+├── dify-agent/    # 【AI+人】临时/回退能力包（非 Dify 最终产物）
 ├── catalog/       # 【AI+人】公共能力已上线目录
 ├── examples/      # 【参考】样板能力包（可选）
 ├── docs/          # 【人】安装、使用说明、图解
