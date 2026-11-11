@@ -29,5 +29,5 @@
 ## 远端
 
 ```text
-http://192.168.1.174:3000/zhangkefan/dify-business-agent-builder.git
+https://github.com/zhangkf-18091078020/dify-business-agent-builder.git
 ```

@@ -20,13 +20,13 @@ Cursor 加载：
 共享仓：
 
 ```text
-http://192.168.1.174:3000/zhangkefan/dify-business-agent-builder.git
+https://github.com/zhangkf-18091078020/dify-business-agent-builder.git
 ```
 
 业务仓一次：
 
 ```bash
-git submodule add http://192.168.1.174:3000/zhangkefan/dify-business-agent-builder.git .cursor/skills/dify-business-agent-builder
+git submodule add https://github.com/zhangkf-18091078020/dify-business-agent-builder.git .cursor/skills/dify-business-agent-builder
 git commit -m "chore: add dify-business-agent-builder skill submodule"
 git push
 ```
@@ -51,7 +51,7 @@ git submodule update --remote .cursor/skills/dify-business-agent-builder
 ## 备选：用户级
 
 ```text
-git clone http://192.168.1.174:3000/zhangkefan/dify-business-agent-builder.git %USERPROFILE%\.cursor\skills\dify-business-agent-builder
+git clone https://github.com/zhangkf-18091078020/dify-business-agent-builder.git %USERPROFILE%\.cursor\skills\dify-business-agent-builder
 ```
 
 ## 其它 AI
