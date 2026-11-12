@@ -2,12 +2,12 @@
 name: dify-business-agent-builder
 description: >-
   Builds Yunlan/Dify Agents for business apps (e.g. 对象采集) and public
-  capabilities (e.g. 监控). Discovery: Dify module → env UI → if both fail,
-  read workspace dify-agent/ capability pack → else template fallback.
-  Confirm with human, then Workflow→Tool + Skill + new Agents (01～04).
-  Capability packs are temporary under dify-agent/; final assets live in Dify.
-  Public builds need Agents visibility + 公共能力目录. Never old studio AGENT;
-  never empty-shell tools.
+  capabilities (e.g. 监控). If workspace dify-agent/ capability pack exists,
+  use it and build confirmed matrix rows without re-asking, without scraping
+  env UI or re-deriving from Dify. Else: Dify module → env UI → pack fallback
+  → template. Then Workflow→Tool + Skill + new Agents (01～04). Packs are
+  temporary under dify-agent/; final assets live in Dify. Public builds need
+  Agents visibility + 公共能力目录. Never old studio AGENT; never empty-shell tools.
 ---
 
 # Dify 业务 / 公共 Agent 搭建执行器
@@ -15,7 +15,7 @@ description: >-
 **适用谁**：业务同事（对象采集、应用采集…）与**平台同事**（监控、告警、调度、资产…）**同一 Skill**。  
 **共同交付**：新版 **Agents**（顶栏 Agents 可见）。公共类还要登记 `catalog/公共能力目录.md`，方便业务同事直达或绑定。
 
-**规则版本**：`20261112b`（改 L1 文件时请更新日期；执行报告须带上此版本 + 本包覆盖项）。
+**规则版本**：`20261112c`（改 L1 文件时请更新日期；执行报告须带上此版本 + 本包覆盖项）。
 
 ## 执行身份（L0；先认自己是谁）
 
@@ -23,7 +23,7 @@ description: >-
 
 | 身份 | 谁 | 该做什么 | 不该做什么 |
 |------|-----|----------|------------|
-| **Builder（你）** | Cursor 按本 Skill 执行 | 在 Dify 造 **Workflow→Tool + Skill + 新版 `/agents/` Agent**；临时落盘能力包；人确认矩阵 | 去业务环境（如 222）替用户创建/启动真实采集、迁移等任务；只建 Workflow 就宣布「Agent 已搭好」 |
+| **Builder（你）** | Cursor 按本 Skill 执行 | 在 Dify 造 **Workflow→Tool + Skill + 新版 `/agents/` Agent**；有能力包则按包直接造；无包才落盘/探查 | 去业务环境（如 222）替用户创建/启动真实采集、迁移等任务；只建 Workflow 就宣布「Agent 已搭好」 |
 | **业务 Agent（产物）** | 造完后挂在 Dify `/agents/` 的对话入口 | 用户说「搭建/创建…任务」时调 `create_*` 等业务 Tool | （由 `04` §2.0 约束运行时行为；**不是**你现在要亲自执行的业务动作） |
 
 **语义拆开（强制）**：
@@ -95,6 +95,7 @@ description: >-
 | Skill 正文 / 路由 / 长思考不调工具 | `rules/03-Skill规范.md` |
 | Agents 形态 / 旧版 / 运行时把「搭建业务」理解成自检配置 | `rules/04-Agent规范.md` §2.0 |
 | Builder 把「搭 Agent」搞成去业务环境搭流程 / 只交 Workflow | **本文件「执行身份」** + `rules/生成契约`「执行身份」与 L0 |
+| 有包仍去反推 Dify / 扒页面 / 再问确认 | **本文件「有包直接造」** + `生成契约` L0 第 9 条 |
 | 总流程、业务 vs 公共分支 | **本文件** |
 | 验收 / 禁止项 | `rules/生成契约.md` |
 | 某个**业务**做什么 | `dify-agent/〈业务〉-业务能力包.md`（L3；样板见 `examples/`） |
@@ -134,24 +135,32 @@ description: >-
 
 不确定 → **停问用户**：这是业务入口还是公共平台能力？
 
-## 主流程（两类共用；无包时「Dify → 页面 → dify-agent 回退」）
+## 主流程（两类共用；**有包优先，直接造**）
 
 ```text
-用户：要搭建「某某」Agent（如「要搭建对象采集agent」）
+用户：要搭建「某某」Agent（如「要搭建对象采集agent」/「数据比对agent」）
   → 判定业务 or 公共；环境/Dify 默认用本文件「默认」表（用户可改）
-  → 工作区已有对应能力包？（含本仓 dify-agent/）
-        有 → 校验待确认 → 人确认后按矩阵 + rules/01～04 造
+  → 工作区已有对应能力包？（含本仓 dify-agent/〈名〉-业务/公共能力包.md）
+        有 → 【优先】读包开建（见下「有包直接造」）
+              → 禁止再反推 Dify 模块、禁止再上业务环境扒页面抓接口
+              → 禁止再为「矩阵是否 OK」停问用户
         无 → ① 共用 Dify 取对应模块（Chatflow 等）反推
               ② 否则上【该环境】页面探查汇总
-              ③ ①② 都扒不到对应业务流程
-                   → 【强制】读当前项目 dify-agent/〈名〉-业务/公共能力包.md
-                   → 有包：校验 + 人确认后按 01～04 造
-                   → 无包：templates 回退（须注明）或停问
-              → ①或② 成功 → 临时落盘到 dify-agent/ → 人确认 → 01～04 造
+              ③ ①② 都扒不到 → templates 回退（须注明）或停问
+              → ①或② 成功 → 临时落盘到 dify-agent/ → 汇总矩阵给人确认 → 01～04 造
   → 收尾：
         业务 → 按包勾选绑定「已上线」公共能力；Agent 打业务标签
         公共 → 必须新版 Agents + 标签「公共」「〈名〉」；回填 catalog/公共能力目录（工具/Skill/Agent URL=已上线）
 ```
+
+### 有包直接造（强制；用户说「搭某某 Agent」且包已在 `dify-agent/`）
+
+1. **只读能力包**作为规格真相；**不要**再打开 Chatflow 反推、**不要**浏览器访问 222/业务页抓接口。  
+2. 矩阵行「用户已确认 = **是**」→ **视为已审定，立即**按 `01`→`04` 造对应 Tool/Skill/Agent；**禁止**再问「要不要建这些」。  
+3. 「用户已确认 = **否**」或写明 **暂缓** → **本轮不建**，执行报告列「已跳过」；**禁止**为暂缓项停问「要不要现在上」。  
+4. §9「待确认 / 开放」→ **本轮默认跳过**（不阻塞已确认行开建）；仅当已确认行**缺接口路径/成功码导致无法造非空壳工具**时才停问。  
+5. Dify 已有同名 `/agents/` Agent（包内写了 URL 或顶栏能搜到）→ **核对/补齐** Tool·Skill·短提示词挂载，**默认不重建、不问「重建还是复用」**。  
+6. 用户口头「按包正式搭建 / 跳过确认」与本节同效；即使用户只说「搭某某 agent」，只要工作区有对应包，也走本节。
 
 ### 公共能力（监控等）额外要求
 
@@ -171,28 +180,27 @@ description: >-
 2. 对照仓库 `catalog/公共能力目录.md` 是否「已上线」；  
 3. 命中 → 绑定，不重建；未命中 → 停问「公共监控未上线或未打标签」。
 
-### 无能力包：发现顺序（强制）
+### 发现顺序（强制）
 
 | 优先级 | 来源 | 做法 |
 |--------|------|------|
-| **0** | 工作区已有包 | 读 `dify-agent/〈名〉-业务/公共能力包.md` → 校验待确认项 → 人确认后造。 |
-| **1** | Dify 已有对应模块（如原 **Chatflow**） | 打开/导出该模块：节点、HTTP/工具调用、入参出参、分支 → 写成能力矩阵 + 接口表 → **临时落盘** `dify-agent/`。起草方式注明「Dify 模块反推」。**禁止**再浏览器探业务页抓接口。 |
-| **2** | 无对应模块 | 确认菜单/环境 → 上环境汇总按钮/Tab/列表为候选（有列表则默认带列表）→ 临时落盘 `dify-agent/`。 |
-| **3** | **Dify 与页面都扒不到**对应业务流程 | **【强制】**再读当前项目 `dify-agent/` 下已有技能包；有则按包确认后走 `01`～`04`；仍无 → 优先级 4。 |
-| **4** | 仍无可用包 | 才用 `templates/` 回退，须注明原因；或停问用户补包/授权模板回退。 |
+| **0** | 工作区已有包 | 读 `dify-agent/〈名〉-业务/公共能力包.md` → 走「有包直接造」。**到此为止**，勿再进 1/2。 |
+| **1** | 无包；Dify 已有对应模块（如原 **Chatflow**） | 打开/导出该模块反推 → **临时落盘** `dify-agent/` → **给人确认矩阵**后再造。起草方式注明「Dify 模块反推」。**禁止**再浏览器探业务页抓接口。 |
+| **2** | 无包且无对应模块 | 上环境汇总按钮/Tab/列表 → 临时落盘 → **给人确认**后再造。 |
+| **3** | 仍无可用包 | 才用 `templates/` 回退（须注明）或停问。 |
 
 共通：
 
 1. **禁止**无证据就按模板编「创建+启停+统计」。  
-2. 人确认矩阵前禁止建新版 Agent 侧 Workflow / Tool / Skill / Agent（读已有 Chatflow / 读 `dify-agent/` 以落盘除外）。  
-3. 从 Chatflow 落盘时：接口路径/字段以模块内配置为准；看不清 → 第 9 节待确认，禁止猜测。  
+2. **无包**时：人确认矩阵前禁止建新版 Agent 侧资产（读 Chatflow 以落盘除外）。**有包**时：对矩阵「是」行**直接开建**，不适用本条停问。  
+3. 有包开建时：接口以包内表为准；**禁止**为「再核实」去扒页面或重反推 Dify。  
 4. 能力包仅中间产物；最终以 Dify 上 Tool+Skill+Agents 为准。  
-5. 允许「环境探查后人确认」；用户只说「要搭建某某 agent」时用本文件默认环境/Dify。
+5. 用户只说「要搭建某某 agent」且工作区无包时：用本文件默认环境/Dify，走优先级 1→3。
 
-### 确认后逐项造物
+### 逐项造物
 
-有包且已确认 → 按 `rules/01`→`02`→`03`→`04`；禁止空壳；列表≠单状态。  
-来源为环境探查时：找入口 → 抓同款接口再造；来源为 Chatflow / `dify-agent/` 回退时：按包内已有接口造，勿再浏览器补抓（除非包内明确待确认且人授权）。
+有包 → 仅矩阵「是」行：按 `rules/01`→`02`→`03`→`04`；禁止空壳；列表≠单状态；暂缓行跳过。  
+无包且来源为环境探查：找入口 → 抓同款接口再造；来源为 Chatflow：按反推落盘后的包造。
 
 ### 收尾
 
