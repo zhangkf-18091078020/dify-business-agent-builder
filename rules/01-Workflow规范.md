@@ -9,6 +9,7 @@
 - **创建 Workflow 时应用名必须填中文**（矩阵「工作室中文名」，如「数据比对列表查询」）；禁止把 `list_esi_compare` 等英文蛇形写入工作室/侧栏标题。英文名只在发布为工具时写入 Tool `name`（见 `02`）。误用英文名 → 改中文后再继续编排/发布。  
 - 接口路径/参数名必须与**业务环境页面抓包**一致；禁止编造。  
 - 能力包接口表路径须写在反引号内且 **以 `/` 开头**（含上下文根，如 `/esi_compare/...`）；禁止 `Controller/foo.do` 这种无前导 `/` 片段（网关不认，接口列表会空）。  
+- **写入 Dify HTTP 节点 `url` 时**必须再拼环境基址成 `http(s)://…`（见 §5.1.1）；表中的 `/esi_…` **不能**原样当作节点 url。  
 - 无页面入口、无同款接口证据 → **禁止**发布占位空壳 Workflow。
 
 ## 2. 推荐编排（按能力类型选）
@@ -115,6 +116,18 @@ Console API / API Key **不会**给节点补前端默认值。只写 `method`/`u
 | `variables` | `[]` |
 | `title` / `desc` / `method` / `url` / `type` | 齐全；`type` 固定 `http-request` |
 
+### 5.1.1 HTTP `url`（试跑硬门槛）
+
+- **必须**以 `http://` 或 `https://` 开头的**绝对 URL**。  
+- **禁止**把能力包接口表里的路径片段（如 `/esi_compare/.../foo.do`）直接塞进 HTTP 节点 `url` —— Dify 会报 `url should start with http:// or https://`，试跑秒失败。  
+- 正确：`{{#env.BIZ_API_BASE#}}/…` 或写全 `http://<主机>:<端口>/esi_compare/…`（基址进环境变量，见 §4）。  
+- 能力包路径表仍写 `` `/esi_compare/...` ``（给网关/文档用）；**拼到 HTTP 节点时必须加基址**。
+
+业务 POST（如 deployBatch / 列表）通常还要：
+
+- `body.type` = `x-www-form-urlencoded`（或页面同款），`data` 含页面抓包字段（至少 `tokenID` 等）；**禁止**业务调用仍 `body.type=none` 空跑。  
+- 鉴权：先登录拿 `tokenID`（HTTP 或 Code 内），再带入业务请求；**禁止**假设无 token 可调业务接口。
+
 `timeout` 示例（与现网可打开 Workflow 对齐）：
 
 ```json
@@ -138,19 +151,35 @@ Console API / API Key **不会**给节点补前端默认值。只写 `method`/`u
 
 边 `edges`：source/target、sourceHandle/targetHandle 齐全，与节点 id 对得上。
 
-### 5.2 推荐写法（避免再炸）
+### 5.2 最小可交付图（禁止 Start→单 HTTP 空壳）
 
-1. **先拉一份能打开的同业务/同类型 Workflow draft**，深拷其 HTTP 节点骨架，只改 `url`/`body`/`title` 等业务字段。  
+API 新建/先删再建后，Workflow **至少**满足：
+
+| 项 | 要求 |
+|----|------|
+| Start | `variables` 暴露 Agent/工具入参（可空默认写在 description）；禁止长期 `variables: []` 却宣称业务工具 |
+| 业务节点 | 按 `01` §2 类型编排（列表可用 Code 内调接口；创建须登录→写操作→失败回查/汇总） |
+| End | **必须有** `type=end`，`outputs` 接到业务结果变量（如 `result`）；禁止只有 Start+HTTP、无输出 |
+| edges | Start→…→End 连通；`edge.data` 建议带 `sourceType`/`targetType`/`isInIteration`/`isInLoop` |
+| features | `file_upload` 须为对象且含 `enabled`（如 `{ "enabled": false }`），**禁止** `file_upload: {}` |
+| 环境变量 | 基址等放 `environment_variables` / 节点 `env`，与 §4 一致 |
+
+对照样板：现网「数据比对列表查询工具」= Start→Code→End；「数据比对创建任务工具」= 多步 HTTP/Code + End。**禁止**只建 Start→一个相对路径 HTTP 就发布。
+
+### 5.3 推荐写法（避免再炸 / 再试跑失败）
+
+1. **先拉一份能打开且试跑过的同业务 Workflow draft**，深拷 graph（含 End、features、HTTP 绝对 URL、body），只改业务字段。  
 2. 或 Studio UI 新建空 Workflow（平台写齐默认）再 API 改业务。  
-3. 写入后必须用工作室打开「编排」验收；打不开 = **未交付**，先补字段再发布为工具。
+3. 写入后验收：**编排能打开** + **Test Run 不因 url/缺 End 失败**；任一不过 = **未交付**。
 
-### 5.3 其它节点
+### 5.4 其它节点
 
-Code / If-Else / Start 等同样禁止缺 Studio 默认键；不确定时从可打开样板拷贝整节点，勿手搓最小 JSON。
+Code / If-Else / Start / End 等同样禁止缺 Studio 默认键；不确定时从可打开样板拷贝整节点，勿手搓最小 JSON。
 
 ## 6. 禁止
 
 - API 写 draft 时省略 HTTP 的 `authorization` / `headers` / `params` / `body` / `timeout`（及画布 `width`/`height`/`position`）。  
+- HTTP `url` 使用无协议相对路径（`/esi_…`）；业务 HTTP `body.type=none` 空调用；无 End / 无登录 token 链路却发布为业务工具。  
 - 只靠全局字符串从其它业务 Workflow 替换交差而不做差异核对 + 自测。  
 - 业务 Workflow 内复制公共别名/映射表（应绑公共能力）。  
 - 单工具串联超长等待的全生命周期。  
