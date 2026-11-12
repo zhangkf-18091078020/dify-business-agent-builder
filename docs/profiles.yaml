@@ -1,0 +1,27 @@
+# 备忘：对象采集运行参数清单（改本文件不会切换 Dify）
+# 真正改环境/模型：见「运行画像.md」，在 Dify 操作
+schema_version: 1
+updated: "2026-11-12"
+
+active_memo:
+  env: env-222
+  model: qwen3:30b-a3b
+
+dify_workflow_env_vars:
+  OBJ_COLLECT_API_BASE: "http://10.0.0.222:9996/esi_migration"
+  OBJ_COLLECT_FOOTER_ENV: "222"
+  OBJ_COLLECT_DEFAULT_MAC_ID: "10328"
+  OBJ_COLLECT_DEFAULT_DB_ID: "11170"
+  OBJ_COLLECT_DEFAULT_MAPPING: "wangqds"
+  OBJ_COLLECT_DEFAULT_TARGET_DB_TYPES: "gaussdb(PG),gaussdb(M)"
+  OBJ_COLLECT_DEFAULT_OBJ_TYPES: "TABLE,VIEW"
+  OBJ_COLLECT_DEFAULT_RUN_MODE: "d,0"
+  OBJ_COLLECT_DEFAULT_DESTROY_MODE: "keep"
+
+agent_model_memo:
+  provider: "langgenius/ollama/ollama"
+  model: "qwen3:30b-a3b"
+  settings:
+    think: false
+    temperature: 0
+    max_tokens: 2048

@@ -56,11 +56,20 @@
 - 业务 Skill；能力包勾选的公共 Tool/Skill。  
 - 验收：URL 含 `/agents/`，配置页可见 Skill 列表。
 
-## 4. 误建成旧版
+## 4. 模型与运行参数（在 Dify 换，不在 Cursor 热切）
+
+- 模型挂在 **每个 Agent 配置页**（`agent_soul.model`）；换模型 = 打开该 Agent → 改模型 → **发布**。  
+- 搭建/启停主路径建议：可关思考的非 R1 模型；`think=false`；`temperature=0`；**`max_tokens≥2048`**（过低易只输出思考不调工具）。  
+- 十几个业务 Agent 换同一默认模型：可在 Dify Console **逐个改**，或用 API **批量**改 `model` 再 publish；不必为换模型重建工具/Skill。  
+- **禁止**指望改 Git/`profiles.yaml` 自动切换线上模型。细则见 `docs/运行画像.md`。
+
+短提示词须含硬契约摘要（保名、状态短路、禁思考当回复），细则在 Skill（见 `03` §3）。
+
+## 5. 误建成旧版
 
 在 Agents 下重建并迁移；旧版不得计为合格交付。
 
-## 5. 工作区 `dify-agent/` 落盘白名单（硬约束）
+## 6. 工作区 `dify-agent/` 落盘白名单（硬约束）
 
 **当前工作区项目根**（本 Skill 仓或业务/公共仓）的 `dify-agent/` **只允许**下列文件：
 
