@@ -1,7 +1,8 @@
 # 02 Tool 规范（包内）
 
 **改这里**：Workflow 如何发布为可挂载工具、命名、参数暴露给 LLM。  
-**前置**：Workflow 已按 `01-Workflow规范` 自测通过。
+**前置**：Workflow 已按 `01-Workflow规范` 自测通过。  
+**同名**：工作室已有同名已发布 Workflow 工具 → **覆盖更新该工具对应 Workflow 后重新发布**，禁止另建「xxx-2」；见 `SKILL.md`「同名直接覆盖」。
 
 ## 1. 命名与一一对应
 
