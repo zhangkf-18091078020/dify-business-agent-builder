@@ -60,8 +60,9 @@
 ## 4. 模型与运行参数（在 Dify 换，不在 Cursor 热切）
 
 - 模型挂在 **每个 Agent 配置页**（`agent_soul.model`）；换模型 = 打开该 Agent → 改模型 → **发布**。  
-- 搭建/启停主路径建议：可关思考的非 R1 模型；`think=false`；`temperature=0`；**`max_tokens≥2048`**（过低易只输出思考不调工具）。  
-- 十几个业务 Agent 换同一默认模型：可在 Dify Console **逐个改**，或用 API **批量**改 `model` 再 publish；不必为换模型重建工具/Skill。  
+- **默认模型（强制新建时）**：**`qwen3`**（以当前 Dify 工作区已接入的同名/匹配项为准，如列表中的 `qwen3`）。新建业务/公共 `/agents/` Agent 时须选此默认；**禁止**默认用 `deepseek-r1` 等 R1 思考模型作主路径（易只思考不调工具）。已有 Agent 为其它模型 → 按本规范改为 `qwen3` 后发布（或 API 批量改）。  
+- 运行参数建议：`think=false`（若平台支持）；`temperature=0`；**`max_tokens≥2048`**（过低易只输出思考不调工具）。  
+- 十几个业务 Agent 统一到默认 `qwen3`：可在 Dify Console **逐个改**，或用 API **批量**改 `model` 再 publish；不必为换模型重建工具/Skill。  
 - **禁止**指望改 Git/`profiles.yaml` 自动切换线上模型。细则见 `docs/运行画像.md`。
 
 短提示词须含硬契约摘要（保名、状态短路、禁思考当回复），细则在 Skill（见 `03` §3）。
