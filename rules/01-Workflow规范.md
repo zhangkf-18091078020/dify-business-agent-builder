@@ -93,8 +93,64 @@ HTTP 节点须设合理超时；失败分支尽快输出，避免整工具被平
 
 **目标**：同一业务多工具尽量共用同一套变量名；换环境 = 在 Dify 改变量并发布，不必改 Skill 契约、不必为换 IP 复制整套 Agent。
 
-## 5. 禁止
+## 5. API 写 draft / graph（硬约束）
 
+Console API / API Key **不会**给节点补前端默认值。只写 `method`/`url`/`retry` → 工作室编排页会报「渲染此组件时发生了意外错误」。
+
+**强制**：凡 `PUT/POST` 写入 `workflows/draft`（含先删再建）时，每个节点必须带齐 Studio 可渲染的完整结构；**禁止**最小字段壳。
+
+### 5.1 HTTP 节点（`type=http-request`）必填默认
+
+写入前自检：下列键 **不得为 `undefined`/缺失**（空字符串 `""` 可以；对象必须在）。
+
+| 字段 | 最低默认（可按业务改值，不可省略键） |
+|------|--------------------------------------|
+| `authorization` | `{ "type": "no-auth", "config": null }` |
+| `headers` | `""`（或等价空结构） |
+| `params` | `""` |
+| `body` | `{ "type": "none", "data": [] }`；表单则 `type=x-www-form-urlencoded` + `data[{id,key,type,value}]` |
+| `timeout` | 见下表示例对象（含 connect/read/write 与 max_*） |
+| `retry_config` | `{ "retry_enabled": false, "max_retries": 0, "retry_interval": 100 }` |
+| `ssl_verify` | `false` 或 `true`（布尔，勿缺） |
+| `variables` | `[]` |
+| `title` / `desc` / `method` / `url` / `type` | 齐全；`type` 固定 `http-request` |
+
+`timeout` 示例（与现网可打开 Workflow 对齐）：
+
+```json
+{
+  "connect": 10000,
+  "read": 300000,
+  "write": 60000,
+  "max_connect_timeout": 60000,
+  "max_read_timeout": 600000,
+  "max_write_timeout": 120000
+}
+```
+
+节点级画布字段也须带上（缺了也可能崩或拖不动）：
+
+| 字段 | 最低要求 |
+|------|----------|
+| `position` / `positionAbsolute` | `{ "x": number, "y": number }` |
+| `width` / `height` | 如 `244` / `120` |
+| `sourcePosition` / `targetPosition` | 如 `"right"` / `"left"` |
+
+边 `edges`：source/target、sourceHandle/targetHandle 齐全，与节点 id 对得上。
+
+### 5.2 推荐写法（避免再炸）
+
+1. **先拉一份能打开的同业务/同类型 Workflow draft**，深拷其 HTTP 节点骨架，只改 `url`/`body`/`title` 等业务字段。  
+2. 或 Studio UI 新建空 Workflow（平台写齐默认）再 API 改业务。  
+3. 写入后必须用工作室打开「编排」验收；打不开 = **未交付**，先补字段再发布为工具。
+
+### 5.3 其它节点
+
+Code / If-Else / Start 等同样禁止缺 Studio 默认键；不确定时从可打开样板拷贝整节点，勿手搓最小 JSON。
+
+## 6. 禁止
+
+- API 写 draft 时省略 HTTP 的 `authorization` / `headers` / `params` / `body` / `timeout`（及画布 `width`/`height`/`position`）。  
 - 只靠全局字符串从其它业务 Workflow 替换交差而不做差异核对 + 自测。  
 - 业务 Workflow 内复制公共别名/映射表（应绑公共能力）。  
 - 单工具串联超长等待的全生命周期。  
