@@ -5,8 +5,9 @@
 
 ## 1. 一份业务一个 Skill
 
-- 名称建议：`<biz>-ops`（如 `obj-collect-ops`）。  
-- 挂到对应业务 Agent；公共能力另挂公共 Skill（如 `asset-resolve`）。
+- 机器名 `name`：`<biz>-ops`（如 `esi-compare-ops`），供引用。  
+- **显示名 `display_name`：必须中文**（如「数据比对操作手册」）。工作室/Agents 挂载区以中文名为准。  
+- 挂到对应业务 Agent；公共能力另挂公共 Skill（如 `asset-resolve`，显示名「资产解析」）。
 
 ## 2. 正文最少章节
 

@@ -8,6 +8,7 @@
 | 正确 | 禁止（不合格） |
 |------|----------------|
 | 顶栏 **Agents**；URL `/agents/<id>/configure` | 工作室 Agent 应用；`/app/<id>/configuration` |
+| **Agent 显示名必须中文**（如「数据比对Agent」） | 英文/蛇形当顶栏名称（如 `esi-compare-agent`） |
 | 有 **Skill** 挂载区 | 标「旧版 AGENT」、无 Skill 区 |
 | 短提示词 + 挂工具 + 挂 Skill | 把整本手册塞进提示词且无 Skill |
 
