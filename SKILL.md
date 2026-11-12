@@ -15,7 +15,7 @@ description: >-
 **适用谁**：业务同事（对象采集、应用采集…）与**平台同事**（监控、告警、调度、资产…）**同一 Skill**。  
 **共同交付**：新版 **Agents**（顶栏 Agents 可见）。公共类还要登记 `catalog/公共能力目录.md`，方便业务同事直达或绑定。
 
-**规则版本**：`20261112j`（改 L1 文件时请更新日期；执行报告须带上此版本 + 本包覆盖项）。
+**规则版本**：`20261112k`（改 L1 文件时请更新日期；执行报告须带上此版本 + 本包覆盖项）。
 
 ## 执行身份（L0；先认自己是谁）
 
@@ -96,6 +96,7 @@ description: >-
 | Start→单 HTTP、无 End、试跑/工具不可用 | `rules/01` §5.2（最小可交付图） |
 | 发布为工具 | `rules/02-Tool规范.md` |
 | Skill 正文 / 路由 / 长思考不调工具 | `rules/03-Skill规范.md` |
+| 业务 Skill 只有两字 description / 正文空白 | `rules/03` §1.1 + §4；模板 `templates/业务Skill正文模板.md` |
 | Agents 形态 / 旧版 / 运行时把「搭建业务」理解成自检配置 | `rules/04-Agent规范.md` §2.0 |
 | Builder 把「搭 Agent」搞成去业务环境搭流程 / 只交 Workflow | **本文件「执行身份」** + `rules/生成契约`「执行身份」与 L0 |
 | 有包仍去反推 Dify / 扒页面 / 再问确认 | **本文件「有包直接造」** + `生成契约` L0 第 9 条 |
@@ -171,7 +172,8 @@ description: >-
    - 节点默认键齐（authorization/headers/params/body/timeout 等）；`features.file_upload.enabled` 存在。  
    - 工作室编排能打开；**Test Run 不得**出现 `url should start with http:// or https://`。  
    - **优先**：克隆同业务已能试跑的样板 draft 再改字段，禁止从零手搓最小 HTTP 壳。  
-8. 用户口头「按包正式搭建 / 跳过确认」与本节同效；即使用户只说「搭某某 agent」，只要工作区有对应包，也走本节。
+8. **业务 Skill 必须写满（强制）**：按 `rules/03` 从能力包生成；`display_name` 中文；`description` 须含业务范围+主工具名（禁止「数据比对」两字壳）；正文用 `templates/业务Skill正文模板.md` 填齐工具列表/路由/默认/安全/硬契约后写入 Dify 并发布。**禁止** name+空指令区就挂 Agent。打不开 Skill 页见得到完整章节 = 未交付。  
+9. 用户口头「按包正式搭建 / 跳过确认」与本节同效；即使用户只说「搭某某 agent」，只要工作区有对应包，也走本节。
 
 ### 公共能力（监控等）额外要求
 
