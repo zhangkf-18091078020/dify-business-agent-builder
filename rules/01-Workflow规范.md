@@ -96,9 +96,29 @@ HTTP 节点须设合理超时；失败分支尽快输出，避免整工具被平
 
 ## 5. API 写 draft / graph（硬约束）
 
-Console API / API Key **不会**给节点补前端默认值。只写 `method`/`url`/`retry` → 工作室编排页会报「渲染此组件时发生了意外错误」。
+Console API / API Key **不会**给节点补前端默认值。只写 `method`/`url`/`retry` → 工作室编排页会报「渲染此组件时发生了意外错误」。  
+把能力包 `` `/esi_…` `` 原样写入 HTTP `url` → Test Run 报 `url should start with http:// or https://`（**先删再建也会重复失败**，因生成逻辑错了）。
 
-**强制**：凡 `PUT/POST` 写入 `workflows/draft`（含先删再建）时，每个节点必须带齐 Studio 可渲染的完整结构；**禁止**最小字段壳。
+**强制**：凡 `PUT/POST` 写入 `workflows/draft`（含先删再建）时：
+
+1. 每个节点带齐 Studio 可渲染完整结构（禁止最小字段壳）；  
+2. 每个 HTTP `url` 通过门禁（§5.1.1）；  
+3. 图满足最小可交付（§5.2）；  
+4. 写入后自检清单（§5.5）全绿才可 publish。
+
+### 5.0 落库前门禁（Builder 每次写 draft 前默念）
+
+```text
+□ 工作室名 = 矩阵「工作室中文名」（中文）
+□ 每个 HTTP.url 匹配 ^https?://   ← 相对路径一律否决
+□ 能力包路径已「基址+路径」转换，未原样粘贴
+□ 有 End；非 Start→单 HTTP
+□ 业务 HTTP body ≠ none（有表单字段）；有登录/token 或 Code 内等价
+□ features.file_upload.enabled 存在
+□ 编排能打开；Test Run 无 url should start with http
+```
+
+任一项否 → **停写/回滚**，禁止发布为工具。
 
 ### 5.1 HTTP 节点（`type=http-request`）必填默认
 
@@ -116,12 +136,17 @@ Console API / API Key **不会**给节点补前端默认值。只写 `method`/`u
 | `variables` | `[]` |
 | `title` / `desc` / `method` / `url` / `type` | 齐全；`type` 固定 `http-request` |
 
-### 5.1.1 HTTP `url`（试跑硬门槛）
+### 5.1.1 HTTP `url`（试跑硬门槛；重建也必须遵守）
 
-- **必须**以 `http://` 或 `https://` 开头的**绝对 URL**。  
-- **禁止**把能力包接口表里的路径片段（如 `/esi_compare/.../foo.do`）直接塞进 HTTP 节点 `url` —— Dify 会报 `url should start with http:// or https://`，试跑秒失败。  
-- 正确：`{{#env.BIZ_API_BASE#}}/…` 或写全 `http://<主机>:<端口>/esi_compare/…`（基址进环境变量，见 §4）。  
-- 能力包路径表仍写 `` `/esi_compare/...` ``（给网关/文档用）；**拼到 HTTP 节点时必须加基址**。
+| 来源 | 写法 | 能否写入 HTTP 节点 `url` |
+|------|------|---------------------------|
+| 能力包接口表 | `` `/esi_compare/AutoDeployController/deployBatch.do` `` | **否**（仅文档/网关） |
+| 节点 url（env） | `{{#env.ESI_COMPARE_API_BASE#}}/esi_compare/AutoDeployController/deployBatch.do` | **是**（`ESI_COMPARE_API_BASE`=`http://主机:端口`，**无尾斜杠**） |
+| 节点 url（写死，仅临时） | `http://10.0.0.222:49997/esi_compare/AutoDeployController/deployBatch.do` | **是**（随后应抽到 env） |
+
+- **门禁**：落库前对每个 HTTP 节点执行：`url` 必须以 `http://` 或 `https://` 开头（若用 `{{#env.…#}}` 前缀，env 值本身必须是 `http(s)://…`）。  
+- **禁止**：`url` = `/esi_compare/...`、`esi_compare/...`、`Controller/foo.do`。此类写入 = **生成缺陷**，删了再建若不改生成逻辑会 **同样失败**。  
+- 能力包路径表继续写 `` `/上下文根/...` ``；**转换公式**：`节点url = API_BASE + 表路径`（表路径已含前导 `/`）。
 
 业务 POST（如 deployBatch / 列表）通常还要：
 
@@ -166,20 +191,32 @@ API 新建/先删再建后，Workflow **至少**满足：
 
 对照样板：现网「数据比对列表查询工具」= Start→Code→End；「数据比对创建任务工具」= 多步 HTTP/Code + End。**禁止**只建 Start→一个相对路径 HTTP 就发布。
 
-### 5.3 推荐写法（避免再炸 / 再试跑失败）
+### 5.3 推荐写法（默认路径；避免再炸 / 再试跑失败）
 
-1. **先拉一份能打开且试跑过的同业务 Workflow draft**，深拷 graph（含 End、features、HTTP 绝对 URL、body），只改业务字段。  
-2. 或 Studio UI 新建空 Workflow（平台写齐默认）再 API 改业务。  
-3. 写入后验收：**编排能打开** + **Test Run 不因 url/缺 End 失败**；任一不过 = **未交付**。
+1. **默认**：拉取同业务**已能 Test Run 通过**的 Workflow draft，深拷整份 `graph` + `features`，只改中文名/业务 url/body/入参。  
+2. **其次**：Studio UI「创建空白 Workflow」（平台写齐默认键）再 API 改业务。  
+3. **禁止当默认**：从零手搓「Start + 一个 HTTP + 能力包相对路径」。  
+4. 写入后跑 §5.5；任一不过 = **未交付**，先修 graph 再 publish。
 
 ### 5.4 其它节点
 
 Code / If-Else / Start / End 等同样禁止缺 Studio 默认键；不确定时从可打开样板拷贝整节点，勿手搓最小 JSON。
 
+### 5.5 写入后自检（发布为工具前）
+
+| # | 检查 | 失败表现 |
+|---|------|----------|
+| 1 | 每个 HTTP.`url` 为 `http(s)://…` 或 env 展开后如此 | `url should start with http:// or https://` |
+| 2 | 编排页可打开，无「渲染此组件时发生了意外错误」 | 缺 authorization/timeout 等默认键 |
+| 3 | 存在 End，且 outputs 有业务结果 | 工具无输出 / 空壳 |
+| 4 | 业务请求有 body 字段 + 登录/token（或 Code 内完整调用） | 业务码失败 / 未授权 |
+| 5 | 工作室名为中文 | 违反名称约束 |
+
 ## 6. 禁止
 
 - API 写 draft 时省略 HTTP 的 `authorization` / `headers` / `params` / `body` / `timeout`（及画布 `width`/`height`/`position`）。  
 - HTTP `url` 使用无协议相对路径（`/esi_…`）；业务 HTTP `body.type=none` 空调用；无 End / 无登录 token 链路却发布为业务工具。  
+- 先删再建后仍用同一套「相对路径 HTTP 壳」交差（等于没修生成逻辑）。  
 - 只靠全局字符串从其它业务 Workflow 替换交差而不做差异核对 + 自测。  
 - 业务 Workflow 内复制公共别名/映射表（应绑公共能力）。  
 - 单工具串联超长等待的全生命周期。  
