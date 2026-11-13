@@ -51,11 +51,23 @@
 - 一句仅「解析主机/数据源」→ 允许只返回解析结果。  
 - 一句「搭建…采集任务：〈名〉」且未提主机 → 轨迹须含 `create_*`（可先按名解析采集 id），不得只有分析无工具调用。
 
-## 3. 挂载
+## 3. 挂载（硬验收）
 
 - 能力矩阵内全部业务 Tool。  
-- 业务 Skill；能力包勾选的公共 Tool/Skill。  
+- 业务 Skill；能力包勾选的公共 Tool/Skill（如 `asset-resolve`）。  
+- **必须真实挂上，不能只写进提示词「见 Skill」**：  
+  - API：`PUT /console/api/workspaces/current/agents/<id>/skills`，body `{"skill_ids":[...]}`  
+  - 验收：`GET .../agents/<id>/skills` 返回的 `skill_ids` **非空**且含业务 Skill（及已勾选公共 Skill）  
+  - **`agent_soul.config_skills=[]` 且 skills API 空列表 = 不合格**（此前会出现「改了 Skill 正文但 Agent 运行时根本读不到」）。  
 - 验收：URL 含 `/agents/`，配置页可见 Skill 列表。
+
+### 3.1 短路由必含（写操作业务）
+
+除角色一句外，短提示词须显式点名：
+
+1. 「确认默认 / 可以创建」→ 立刻 `create(flow_name=会话流程名)`，禁止丢名、禁止再问名。  
+2. 「这个流程 / 查状态」→ 立刻 `operate(action=status, flow_name=会话流程名)`。  
+3. 禁止输出思考过程；先工具后一句中文结论。
 
 ## 4. 模型与运行参数（在 Dify 换，不在 Cursor 热切）
 
